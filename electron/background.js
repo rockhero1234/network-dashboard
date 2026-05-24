@@ -12,7 +12,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-      devTools:true
+      devTools:isDev
     },
     icon: path.join(__dirname,'../public/logo.ico')
   });
