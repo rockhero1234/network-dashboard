@@ -1,9 +1,9 @@
 <template>
-    <div class="container d-flex flex-column align-items-start h-100 justify-content-between p-2 w-auto">
+    <div class="container d-flex flex-column align-items-start h-100 justify-content-between p-2 w-auto" ref="containerRef">
         <div class="d-flex flex-column w-100">
             <div class="d-flex justify-content-between gap-3">
                 <p class="h5 mt-2">Topologies</p>
-                <div class="d-flex w-100">
+                <div class="d-flex ">
                 <button class="d-flex justify-content-center align-items-center btn rounded-5" style="width: 40px; height: 40px;" title="Refresh/Logout" @click="logout"><img class="png-theme" :src="refreshicon" style="width: 20px;height: 20px;"/></button>
                 <!-- <button class="d-flex justify-content-center align-items-center btn rounded-5" style="width: 40px; height: 40px;" :title="updateinfo"><img class="png-theme" id="updateicon" :src="updateicon" style="width: 18px;height: 18px;"/></button> -->
                 <button class="d-flex justify-content-center align-items-center btn rounded-5" style="width: 40px; height: 40px;" :title="isdarkmode ? 'Light Mode' : 'Dark Mode'" @click="toggleDarkMode">
@@ -26,10 +26,13 @@
         aria-describedby="basic-addon1"  ref="tName" title="for new topology enter title or paste clipboard data of exported topology" @keyup.enter="addTopology">
         <button class="btn btn-primary btn-sm align-self-center m-2 w-100" @click="addTopology">Add Topology</button>
     </div>
+    
+    <!-- Resize Handle -->
+    <div class="resize-handle" @mousedown="startResize"></div>
     </div>
 </template>
 <script setup>
-    import {ref,defineProps,watch,defineEmits,onBeforeMount} from 'vue'
+    import {ref,defineProps,watch,defineEmits,onBeforeMount,onMounted,onUnmounted} from 'vue'
     import useLocalStorage from './useLocalStorage'
     import settingicon from "../assets/settings.png"
     import exporticon from "../assets/export.png"
@@ -41,6 +44,10 @@
     const ipcRenderer = window.require ? window.require('electron').ipcRenderer : null
     const tName  = ref()
     const updateinfo = ref("latest" )
+    const containerRef = ref(null)
+    const isResizing = ref(false)
+    const startX = ref(0)
+    const startWidth = ref(0)
     onBeforeMount(async ()=>{
         const version  = await ipcRenderer.invoke('get-app-version')
         updateinfo.value = "latest:" +version
@@ -94,12 +101,81 @@
         ipcRenderer.invoke('logout')
     }
 
+    const startResize = (e) => {
+        isResizing.value = true
+        startX.value = e.clientX
+        startWidth.value = containerRef.value.offsetWidth
+        document.addEventListener('mousemove', handleResize)
+        document.addEventListener('mouseup', stopResize)
+        document.body.style.cursor = 'ew-resize'
+        document.body.style.userSelect = 'none'
+    }
+
+    const handleResize = (e) => {
+        if (!isResizing.value) return
+        const diff = e.clientX - startX.value
+        const newWidth = startWidth.value + diff
+        if (newWidth >= 280 && newWidth <= 600) {
+            containerRef.value.style.minWidth = `${newWidth}px`
+            containerRef.value.style.maxWidth = `${newWidth}px`
+        }
+    }
+
+    const stopResize = () => {
+        isResizing.value = false
+        document.removeEventListener('mousemove', handleResize)
+        document.removeEventListener('mouseup', stopResize)
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+        if (containerRef.value) {
+            localStorage.setItem('topologyWidth', containerRef.value.offsetWidth)
+        }
+    }
+
+    onMounted(() => {
+        const savedWidth = localStorage.getItem('topologyWidth')
+        if (savedWidth && containerRef.value) {
+            containerRef.value.style.minWidth = `${savedWidth}px`
+            containerRef.value.style.maxWidth = `${savedWidth}px`
+        }
+    })
+
+    onUnmounted(() => {
+        if (containerRef.value) {
+            localStorage.setItem('topologyWidth', containerRef.value.offsetWidth)
+        }
+    })
+
 </script>
 <style scoped>
     .container{
         background-color: var(--bs-tertiary-bg);
         padding: 0;
+        min-width: 340px;
+        max-width: 340px;
+        position: relative;
     }
+    
+    .resize-handle {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        cursor: ew-resize;
+        background-color: transparent;
+        transition: background-color 0.2s ease;
+        z-index: 10;
+    }
+
+    .resize-handle:hover {
+        background-color: #6e55fb;
+    }
+
+    .resize-handle:active {
+        background-color: #5a42d1;
+    }
+    
     [data-bs-theme="light"] .png-theme{
         filter: invert(0) brightness(0);
     }

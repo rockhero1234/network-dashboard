@@ -42,12 +42,9 @@
             <div class="input-group w-50">
                 <select class="form-select" ref="connTypeRef">
                     <option selected>Select Connection Type</option>
-                    <option value="1">ofc single fiber mode - module</option>
-                    <option value="2">ofc single fiber mode - media convertor</option>
-                    <option value="3">ofc multi mode mode - module</option>
-                    <option value="4">ofc multi mode mode - media convertor</option>
-                    <option value="5">utp</option>
-                    <option value="6">wireless ap</option>
+                    <option v-for="conn in allConnections" :key="conn.id" :value="conn.id">
+                        {{ conn.label }}
+                    </option>
                 </select>
                  <button class="btn btn-secondary btn-sm" @click="addTarget" title="Add Target Connection">Add</button>
             </div>
@@ -70,10 +67,10 @@
     </div>
 </template>
 <script setup>
-import { defineProps, defineEmits, ref, onBeforeMount, watch } from 'vue'
+import { defineProps, defineEmits, ref, onBeforeMount, watch, computed } from 'vue'
 import useLocalStorage from './useLocalStorage'
 
-const p = defineProps(["data", "topology", "nodeId","connections","autoping","pingData","viewonly"])
+const p = defineProps(["data", "topology", "nodeId","connections","autoping","pingData","viewonly","settings"])
 const nameref = ref()
 const ipref = ref()
 const typeref = ref()
@@ -84,6 +81,13 @@ const connTypeRef  = ref()
 const detailref = ref()
 const emits = defineEmits(['closeinfo', 'deleteNode', 'updateNode', 'addTarget','settoast'])
 const types =  ['Internet','Router','PC','Switch','Server']
+
+const allConnections = computed(() => {
+    const defaultConns = p.settings?.defaultConnections || []
+    const customConns = p.settings?.customConnections || []
+    return [...defaultConns, ...customConns]
+})
+
 const closeinfo = () => {
     emits("closeinfo", true)
 }

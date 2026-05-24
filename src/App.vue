@@ -6,6 +6,7 @@ import useLocalStorage from "./components/useLocalStorage"
 import LogIn from "./components/logIn.vue"
 import settingsSide from "./components/settingsSide.vue"
 import ShowToast from "./components/showToast.vue"
+import { verifyPassword } from "./utils/passwordUtils"
 const ipcRenderer = window.require ? window.require('electron').ipcRenderer : null
 
 const data = ref({})
@@ -57,15 +58,20 @@ const deleteTopology = (id,name) => {
   setToast(name+":topology deleted","danger")
 }
 
-const checkPass = (pass) => {
+const checkPass = async (pass) => {
   if(pass == undefined || pass.length == 0){
     setToast("empty entry","danger")
   }
-  else if (pass === settings.value.adminpass) {
-     setToast("Admin Login Sucessfull")
-     islogged.value = true
-  }else{
-     setToast("Check your admin password and try again","danger")
+  else {
+    const latestSettings = await useLocalStorage.getSettings()
+    settings.value = latestSettings
+    const isValid = await verifyPassword(pass, latestSettings.adminpass)
+    if (isValid) {
+      setToast("Admin Login Sucessfull")
+      islogged.value = true
+    } else {
+      setToast("Check your admin password and try again","danger")
+    }
   }
 }
 
@@ -105,10 +111,12 @@ watch(toastData,()=>{
 <template>
   <ShowToast v-if="toastData.text" :toastdata="toastData" :key="toastData.bg"/>
   <div class="main-parent w-100 d-flex justify-content-center" :data-bs-theme="darkMode ? 'dark' : 'light'">
-    <LogIn v-if="!islogged" @check-pass="checkPass" @view-only="viewOnly"/>
+    <LogIn v-if="!islogged" @check-pass="checkPass" @view-only="viewOnly" @settoast="setToast"/>
     <div v-else class="d-flex">    
-      <settingsSide v-if="settingsidestatus" :settings="settings" @closeSettings="closeSettings" @settoast="setToast" :version="version"/>
-      <TopologySection v-else :data="data" @select-topology="selectTopology" @deleteTopology="deleteTopology" :viewonly="viewonly" @openSettings="openSettings"  @settoast="setToast" :isdarkmode="darkMode" @toggleDarkMode="toggleDarkMode"/>
+      <TopologySection v-if="!settingsidestatus" :data="data" @select-topology="selectTopology" @deleteTopology="deleteTopology" :viewonly="viewonly" @openSettings="openSettings"  @settoast="setToast" :isdarkmode="darkMode" @toggleDarkMode="toggleDarkMode"/>
+      <Transition name="slide">
+        <settingsSide v-if="settingsidestatus" :settings="settings" @closeSettings="closeSettings" @settoast="setToast" :version="version"/>
+      </Transition>
       <space v-if="selectedTopology" :data="data" :topology="selectedTopology" :key="selectedTopology" :viewonly="viewonly" :settings="settings" @settoast="setToast"/>
       <h1 v-else class="d-flex align-items-center h-100 justify-content-center w-100">No Topologies or Not Selected</h1>
     </div>
@@ -129,5 +137,30 @@ watch(toastData,()=>{
   .main-parent{
     background-color: var(--bs-body-bg);
     color: var(--bs-body-color);
+  }
+
+  .slide-enter-active {
+    transition: transform 0.2s ease-out;
+  }
+  
+  .slide-leave-active {
+    transition: transform 0.2s ease-out;
+    position: absolute;
+  }
+
+  .slide-enter-from {
+    transform: translateX(-100%);
+  }
+
+  .slide-enter-to {
+    transform: translateX(0);
+  }
+
+  .slide-leave-from {
+    transform: translateX(0);
+  }
+
+  .slide-leave-to {
+    transform: translateX(-100%);
   }
 </style>

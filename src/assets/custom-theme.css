@@ -1,0 +1,160 @@
+/* Custom Theme Colors */
+:root {
+  --bs-primary: #6e55fb;
+  --bs-primary-rgb: 110, 85, 251;
+  --bs-primary-hover: #5a42d1;
+  --bs-primary-active: #4d38b8;
+}
+
+/* Light theme */
+[data-bs-theme="light"] {
+  --bs-primary: #6e55fb;
+  --bs-primary-rgb: 110, 85, 251;
+  --bs-primary-hover: #5a42d1;
+  --bs-primary-active: #4d38b8;
+  --bs-link-color: #6e55fb;
+  --bs-link-hover-color: #5a42d1;
+}
+
+/* Dark theme */
+[data-bs-theme="dark"] {
+  --bs-primary: #6e55fb;
+  --bs-primary-rgb: 110, 85, 251;
+  --bs-primary-hover: #8570fc;
+  --bs-primary-active: #9b7ff5;
+  --bs-link-color: #8570fc;
+  --bs-link-hover-color: #9b7ff5;
+}
+
+/* Button overrides */
+.btn-primary {
+  background-color: #6e55fb !important;
+  border-color: #6e55fb !important;
+}
+
+.btn-primary:hover {
+  background-color: #5a42d1 !important;
+  border-color: #5a42d1 !important;
+}
+
+.btn-primary:active,
+.btn-primary:focus {
+  background-color: #4d38b8 !important;
+  border-color: #4d38b8 !important;
+  box-shadow: 0 0 0 0.25rem rgba(110, 85, 251, 0.5) !important;
+}
+
+.btn-outline-primary {
+  color: #6e55fb !important;
+  border-color: #6e55fb !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: #6e55fb !important;
+  border-color: #6e55fb !important;
+  color: white !important;
+}
+
+/* Form controls */
+.form-control:focus,
+.form-select:focus {
+  border-color: #6e55fb !important;
+  box-shadow: 0 0 0 0.25rem rgba(110, 85, 251, 0.25) !important;
+}
+
+.form-check-input:checked {
+  background-color: #6e55fb !important;
+  border-color: #6e55fb !important;
+}
+
+/* Links */
+a {
+  color: #6e55fb;
+}
+
+a:hover {
+  color: #5a42d1;
+}
+
+/* Badge */
+.badge.bg-primary {
+  background-color: #6e55fb !important;
+}
+
+/* Alert */
+.alert-primary {
+  background-color: rgba(110, 85, 251, 0.1) !important;
+  border-color: #6e55fb !important;
+  color: #4d38b8 !important;
+}
+
+/* Progress bar */
+.progress-bar {
+  background-color: #6e55fb !important;
+}
+
+/* Toast */
+.toast.bg-primary {
+  background-color: #6e55fb !important;
+}
+
+/* Pagination */
+.page-link {
+  color: #6e55fb;
+}
+
+.page-link:hover {
+  color: #5a42d1;
+  background-color: rgba(110, 85, 251, 0.1);
+}
+
+.page-item.active .page-link {
+  background-color: #6e55fb !important;
+  border-color: #6e55fb !important;
+}
+
+/* Nav tabs/pills */
+.nav-pills .nav-link.active {
+  background-color: #6e55fb !important;
+}
+
+.nav-link {
+  color: #6e55fb;
+}
+
+.nav-link:hover {
+  color: #5a42d1;
+}
+
+/* Dropdown */
+.dropdown-item.active,
+.dropdown-item:active {
+  background-color: #6e55fb !important;
+}
+
+/* List group */
+.list-group-item.active {
+  background-color: #6e55fb !important;
+  border-color: #6e55fb !important;
+}
+
+/* Spinner */
+.spinner-border.text-primary,
+.spinner-grow.text-primary {
+  color: #6e55fb !important;
+}
+
+/* Text color */
+.text-primary {
+  color: #6e55fb !important;
+}
+
+/* Background color */
+.bg-primary {
+  background-color: #6e55fb !important;
+}
+
+/* Border color */
+.border-primary {
+  border-color: #6e55fb !important;
+}

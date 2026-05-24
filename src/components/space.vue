@@ -18,6 +18,7 @@
       style="right: 0"
       @click="addNewNode"
     >
+    <i class="bi bi-plus-lg"></i>
       Add Node
     </button>
     <VNetworkGraph
@@ -28,7 +29,7 @@
       :event-handlers="showNodeInfo"
     >
       <template #edge-label="{ edge, ...slotProps }">
-      <v-edge-label :text="edge.label" align="center" vertical-align="above" v-bind="slotProps" />
+      <v-edge-label :text="getEdgeLabel(edge)" align="center" vertical-align="above" v-bind="slotProps" />
     </template>
       <template #override-node-label="{ nodeId, config }">
         <g>
@@ -79,6 +80,7 @@
       :autoping="data[topology].autoping[nodeSelectInfo.nodeId]"
       :ping-data="pingData"
       :viewonly="p.viewonly"
+      :settings="p.settings"
       @settoast="emittoast"
     />
     
@@ -150,6 +152,15 @@ const typeLogo = (nodeId)=>{
     return iconMap[0]
   }
 }
+
+const getEdgeLabel = (edge) => {
+  if (edge.connTypeId) {
+    const connDetails = useLocalStorage.getConnectionDetails(edge.connTypeId, p.settings)
+    return connDetails.label
+  }
+  return edge.label || ''
+}
+
 const configs = defineConfigs({
   node: {
     selectable: true,
@@ -192,13 +203,24 @@ const configs = defineConfigs({
     },
     normal: {
       width: 3,
-      color: (edge)=>edge.color||'black',
+      color: (edge) => {
+        if (edge.connTypeId) {
+          const connDetails = useLocalStorage.getConnectionDetails(edge.connTypeId, p.settings)
+          return connDetails.color
+        }
+        return edge.color || 'black'
+      },
       dasharray: '4 6',
       linecap: 'round',
     },
     hover: {
-
-      color:(edge)=>edge.color||'black',
+      color: (edge) => {
+        if (edge.connTypeId) {
+          const connDetails = useLocalStorage.getConnectionDetails(edge.connTypeId, p.settings)
+          return connDetails.color
+        }
+        return edge.color || 'black'
+      },
     }
   },
  
@@ -248,7 +270,7 @@ const addTarget = (targetId,connType) => {
   if(targetId.length==0 || targetId == "" || connType.length == 0 || String(connType).match("Select") ){
     emits("settoast","Empty Target ID or Connection Type","danger")
   }else{
-  useLocalStorage.addConnection(p.data, p.topology, nodeSelectInfo.value.nodeId, targetId,connType)
+  useLocalStorage.addConnection(p.data, p.topology, nodeSelectInfo.value.nodeId, targetId, connType, p.settings)
   emits("settoast",targetId + ":Target Added")
   }
 }

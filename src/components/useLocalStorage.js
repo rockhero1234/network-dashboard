@@ -1,13 +1,10 @@
 import ShortUniqueId from 'short-unique-id';
 const uid = new ShortUniqueId();
 
-const conns = {
-  1: { label: "ofc single fiber mode - module", color: "#FFC107" },
-  2: { label: "ofc single fiber mode - media convertor", color: "#FFC107" },
-  3: { label: "ofc multi mode mode - module", color: "#20C997" },
-  4: { label: "ofc multi mode mode - module", color: "#20C997" },
-  5: { label: "utp", color: "#0d6efd" },
-  6: { label: "wireless ap", color: "#6610f2" }
+const conns = {};
+
+const getDefaultConnections = () => {
+  return [];
 };
 
 const defaultSetting = {
@@ -15,7 +12,9 @@ const defaultSetting = {
     mails: [],
     packets: "4",
     packettimeout: "2",
-    pingtimeout: "5000"
+    pingtimeout: "5000",
+    defaultConnections: getDefaultConnections(),
+    customConnections: []
 };
 
 const newNode = (data, topology, name, ip, type, detail, x, y) => {
@@ -49,9 +48,17 @@ const saveData = async (data) => {
     localStorage.setItem("topologies", JSON.stringify(data))
 }
 
-const addConnection = (data, topology, source, target, connType) => {
+const addConnection = (data, topology, source, target, connType, settings) => {
     const id = uid.rnd()
-    const newConn = { source, target, label: conns[connType].label, color: conns[connType].color }
+    // Get connection details from settings
+    const allConnections = [...(settings.defaultConnections || []), ...(settings.customConnections || [])]
+    const connDetails = allConnections.find(c => c.id === connType)
+    
+    const newConn = { 
+        source, 
+        target, 
+        connTypeId: connType // Store only the ID reference
+    }
     if(!data[topology]['connection']) data[topology]['connection'] = {}
     data[topology]['connection'][id] = newConn
 }
@@ -118,10 +125,14 @@ const pingDataChange = (pingData, id, value) => {
 const getSettings = async () => {
     const settings = JSON.parse(localStorage.getItem("settings"))
     if (settings?.mails) {
+        if (!settings.defaultConnections) settings.defaultConnections = getDefaultConnections()
+        if (!settings.customConnections) settings.customConnections = []
         return settings
     } else {
         const newSettings = settings || defaultSetting
         if (!newSettings.mails) newSettings.mails = []
+        if (!newSettings.defaultConnections) newSettings.defaultConnections = getDefaultConnections()
+        if (!newSettings.customConnections) newSettings.customConnections = []
         localStorage.setItem("settings", JSON.stringify(newSettings))
         return newSettings
     }
@@ -138,6 +149,25 @@ const updateSettings = (settingsdata, type, value) => {
         settingsdata['packets'] = value.packets
         settingsdata['packettimeout'] = value.packettimeout
         settingsdata['pingtimeout'] = value.pingtimeout
+    } else if (type == "updatedefaultconnection") {
+        const conn = settingsdata.defaultConnections.find(c => c.id === value.id)
+        if (conn) {
+            conn.label = value.label
+            conn.color = value.color
+        }
+    } else if (type == "removedefaultconnection") {
+        settingsdata.defaultConnections = settingsdata.defaultConnections.filter(c => c.id !== value)
+    } else if (type == "addconnection") {
+        const newId = String(Math.max(...settingsdata.defaultConnections.map(c => parseInt(c.id)), ...settingsdata.customConnections.map(c => parseInt(c.id || 0))) + 1)
+        settingsdata.customConnections.push({ ...value, id: newId, isDefault: false })
+    } else if (type == "updatecustomconnection") {
+        const conn = settingsdata.customConnections[value.idx]
+        if (conn) {
+            conn.label = value.label
+            conn.color = value.color
+        }
+    } else if (type == "removeconnection") {
+        settingsdata.customConnections = settingsdata.customConnections.filter((_, idx) => idx !== value)
     }
 }
 
@@ -159,9 +189,15 @@ const serverDownEmailedAdd = async (data) => {
     localStorage.setItem('serverdown', JSON.stringify(data))
 }
 
+const getConnectionDetails = (connTypeId, settings) => {
+    const allConnections = [...(settings.defaultConnections || []), ...(settings.customConnections || [])]
+    const conn = allConnections.find(c => c.id === connTypeId)
+    return conn || { label: 'Unknown', color: '#999999' }
+}
+
 export default {
     newNode, addConnection, newTopology, deleteNode, updateNode, deleteConnection, 
     getData, saveData, getNode, deleteTopology, updateTopologyName, changeAutoPing, 
     pingDataChange, getSettings, serverDownEmailed, serverDownEmailedAdd, 
-    updateSettings, pushUpdateSettings
+    updateSettings, pushUpdateSettings, getConnectionDetails
 }
